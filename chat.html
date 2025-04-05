@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Groups - Study Resources Center</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Socket.io client library -->
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>Study Resources Center</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> Activities</a></li>
+                <li><a href="chat.html"><i class="fas fa-comments"></i> Study Groups</a></li>
+                <li><a href="ai-chat.html"><i class="fas fa-robot"></i> Homework Help</a></li>
+                <li><a href="login.html" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                <li><a href="signup.html" id="signupBtn"><i class="fas fa-user-plus"></i> Sign Up</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Chat Room</h2>
+        <p>Welcome to our chat room. Talk with friends, share game tips, and have fun!</p>
+        
+        <div class="chat-container">
+            <div class="chat-rooms">
+                <h3>Study Rooms</h3>
+                <ul id="roomsList">
+                    <li class="active" data-room="general">General Chat</li>
+                    <li data-room="math">Math Help</li>
+                    <li data-room="science">Science Discussion</li>
+                    <li data-room="history">History Group</li>
+                    <li data-room="languages">Languages</li>
+                </ul>
+                <div class="new-room">
+                    <input type="text" id="newRoomInput" placeholder="New room name">
+                    <button id="createRoomBtn">Create</button>
+                </div>
+            </div>
+            <div class="chat-area">
+                <div class="chat-header">
+                    <h3 id="currentRoom">General Chat</h3>
+                    <span id="userCount">0 online</span>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be added here by JavaScript -->
+                    <div class="message system-message">Welcome to the chat room!</div>
+                </div>
+                <div id="typingIndicator" class="typing-indicator"></div>
+                <form id="chatForm" class="chat-input">
+                    <input type="text" id="messageInput" placeholder="Type a message..." required>
+                    <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Send</button>
+                </form>
+            </div>
+            <div class="chat-users">
+                <h3>Online Users</h3>
+                <ul id="usersList">
+                    <!-- Users will be added here by JavaScript -->
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Study Resources Center. All rights reserved.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script type="module" src="js/api-client.js"></script>
+    <script type="module" src="js/main.js"></script>
+    <!-- Socket.io implementation -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get DOM elements
+            const chatForm = document.getElementById('chatForm');
+            const messageInput = document.getElementById('messageInput');
+            const chatMessages = document.getElementById('chatMessages');
+            const roomsList = document.getElementById('roomsList');
+            const usersList = document.getElementById('usersList');
+            const typingIndicator = document.getElementById('typingIndicator');
+            const currentRoomElement = document.getElementById('currentRoom');
+            const userCountElement = document.getElementById('userCount');
+            const createRoomBtn = document.getElementById('createRoomBtn');
+            const newRoomInput = document.getElementById('newRoomInput');
+            
+            // Get username from authentication
+            let username = 'Anonymous';
+            let token = null;
+            
+            if (window.apiClient && window.apiClient.isLoggedIn()) {
+                token = window.apiClient.token;
+                // Get user profile to get the username
+                window.apiClient.getProfile()
+                    .then(user => {
+                        username = user.username;
+                    })
+                    .catch(err => {
+                        console.error('Error getting user profile:', err);
+                    });
+            }
+            
+            // Initialize variables
+            let currentRoom = 'general';
+            let typingTimeout;
+            
+            // Connect to Socket.io server
+            const socket = io();
+            
+            // Event: Socket connected
+            socket.on('connect', () => {
+                console.log('Connected to server');
+                // Join the default room
+                joinRoom('general');
+            });
+            
+            // Event: Socket error
+            socket.on('connect_error', (error) => {
+                console.error('Connection error:', error);
+                addMessage('System: Connection error. Please refresh the page.', 'system-message');
+            });
+            
+            // Event: Socket disconnected
+            socket.on('disconnect', () => {
+                console.log('Disconnected from server');
+                addMessage('System: Disconnected from server.', 'system-message');
+            });
+            
+            // Event: User joined
+            socket.on('user-joined', (data) => {
+                console.log('User joined:', data);
+                addMessage(`${data.message}`, 'system-message');
+                updateUserCount();
+            });
+            
+            // Event: Chat message received
+            socket.on('chat-message', (data) => {
+                console.log('Message received:', data);
+                const isCurrentUser = data.userId === socket.id;
+                const messageClass = isCurrentUser ? 'user-message' : 'other-message';
+                
+                // Format timestamp
+                const time = new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                addMessage(`${data.username} (${time}): ${data.message}`, messageClass);
+            });
+            
+            // Event: User typing
+            socket.on('user-typing', (data) => {
+                if (data.isTyping) {
+                    typingIndicator.textContent = `${data.username} is typing...`;
+                } else {
+                    typingIndicator.textContent = '';
+                }
+            });
+            
+            // Function to join a room
+            function joinRoom(roomId) {
+                // Leave current room
+                if (currentRoom) {
+                    socket.emit('leave-room', currentRoom);
+                }
+                
+                // Update current room
+                currentRoom = roomId;
+                currentRoomElement.textContent = getRoomDisplayName(roomId);
+                
+                // Clear messages
+                chatMessages.innerHTML = '';
+                addMessage(`Welcome to the ${getRoomDisplayName(roomId)} room!`, 'system-message');
+                
+                // Join new room
+                socket.emit('join-room', roomId);
+                
+                // Update UI
+                updateRoomUI();
+            }
+            
+            // Function to get room display name
+            function getRoomDisplayName(roomId) {
+                const roomElement = document.querySelector(`[data-room="${roomId}"]`);
+                return roomElement ? roomElement.textContent : roomId;
+            }
+            
+            // Function to update room UI
+            function updateRoomUI() {
+                // Update active room in list
+                document.querySelectorAll('#roomsList li').forEach(li => {
+                    li.classList.remove('active');
+                    if (li.dataset.room === currentRoom) {
+                        li.classList.add('active');
+                    }
+                });
+            }
+            
+            // Function to update user count
+            function updateUserCount() {
+                // In a real implementation, this would get the actual count from the server
+                // For now, just display a random number between 2-10
+                const count = Math.floor(Math.random() * 9) + 2;
+                userCountElement.textContent = `${count} online`;
+            }
+            
+            // Function to add a message to the chat
+            function addMessage(message, className) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', className);
+                messageElement.textContent = message;
+                chatMessages.appendChild(messageElement);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Event: Send message
+            chatForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const message = messageInput.value.trim();
+                if (!message) return;
+                
+                // Send message to server
+                socket.emit('send-message', {
+                    message,
+                    roomId: currentRoom,
+                    username,
+                    token
+                });
+                
+                // Clear input
+                messageInput.value = '';
+                
+                // Clear typing indicator
+                socket.emit('typing', {
+                    roomId: currentRoom,
+                    username,
+                    isTyping: false
+                });
+            });
+            
+            // Event: Input typing
+            messageInput.addEventListener('input', function() {
+                // Clear previous timeout
+                clearTimeout(typingTimeout);
+                
+                // Emit typing event
+                socket.emit('typing', {
+                    roomId: currentRoom,
+                    username,
+                    isTyping: true
+                });
+                
+                // Set timeout to clear typing
+                typingTimeout = setTimeout(() => {
+                    socket.emit('typing', {
+                        roomId: currentRoom,
+                        username,
+                        isTyping: false
+                    });
+                }, 3000);
+            });
+            
+            // Event: Click on room
+            roomsList.addEventListener('click', function(e) {
+                if (e.target.tagName === 'LI') {
+                    const roomId = e.target.dataset.room;
+                    if (roomId) {
+                        joinRoom(roomId);
+                    }
+                }
+            });
+            
+            // Event: Create new room
+            createRoomBtn.addEventListener('click', function() {
+                const roomName = newRoomInput.value.trim();
+                if (!roomName) return;
+                
+                // Generate a room ID from the name
+                const roomId = roomName.toLowerCase().replace(/\s+/g, '-');
+                
+                // Add room to list
+                const li = document.createElement('li');
+                li.textContent = roomName;
+                li.dataset.room = roomId;
+                roomsList.appendChild(li);
+                
+                // Clear input
+                newRoomInput.value = '';
+                
+                // Join the new room
+                joinRoom(roomId);
+            });
+            
+            // Initial setup
+            updateUserCount();
+        });
+    </script>
+</body>
+</html> 

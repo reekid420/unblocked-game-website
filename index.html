@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Resources Center</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>Study Resources Center</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> Activities</a></li>
+                <li><a href="chat.html"><i class="fas fa-comments"></i> Study Groups</a></li>
+                <li><a href="ai-chat.html"><i class="fas fa-robot"></i> Homework Help</a></li>
+                <li><a href="login.html" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                <li><a href="signup.html" id="signupBtn"><i class="fas fa-user-plus"></i> Sign Up</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1 id="title">Study Resources Center</h1>
+            <h2 id="sub">Access educational resources from anywhere!</h2>
+
+            <!-- Language fact message that dynamically changes -->
+            <p class="fact-message">Language fact: The most common letter in English is 'e'.</p>
+
+            <!-- Proxy Search Bar -->
+            <div class="proxy-container">
+                <h3>Web Proxy</h3>
+                <p class="proxy-description">Access educational websites through our secure proxy</p>
+                <form id="uv-form" class="proxy-form">
+                    <input id="uv-search-engine" value="https://www.google.com/" type="hidden">
+                    <input id="uv-address" type="text" placeholder="Search the web or enter a URL" class="proxy-input">
+                    <button id="uv-search" type="submit" class="proxy-button"><i class="fas fa-search"></i> Go</button>
+                </form>
+            </div>
+
+            <p>Games, chat rooms, and AI chat - all in one place that bypasses restrictions!</p>
+        </section>
+
+        <section class="games-section">
+            <h2>Featured Games</h2>
+            <div class="games-grid">
+                <!-- Game placeholders -->
+                <div class="game-card">
+                    <div class="game-img placeholder"></div>
+                    <h3>Snake Game</h3>
+                    <a href="activities/logic_puzzle.html" class="play-btn">Play Now</a>
+                </div>
+                <div class="game-card">
+                    <div class="game-img placeholder"></div>
+                    <h3>Coming Soon</h3>
+                    <a href="#" class="play-btn">Coming Soon</a>
+                </div>
+                <div class="game-card">
+                    <div class="game-img placeholder"></div>
+                    <h3>Coming Soon</h3>
+                    <a href="#" class="play-btn">Coming Soon</a>
+                </div>
+                <div class="game-card">
+                    <div class="game-img placeholder"></div>
+                    <h3>Coming Soon</h3>
+                    <a href="#" class="play-btn">Coming Soon</a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Add quick links section similar to 55gms -->
+        <section class="quicklinks-section">
+            <h2>Quick Access</h2>
+            <div class="quicklinks">
+                <a class="quicklink" onclick="hire('https://google.com')">
+                    <img class="shortcut" src="https://www.google.com/favicon.ico" alt="Google">
+                    <span>Google</span>
+                </a>
+                <a class="quicklink" onclick="hire('https://youtube.com')">
+                    <img class="shortcut" src="https://www.youtube.com/favicon.ico" alt="YouTube">
+                    <span>YouTube</span>
+                </a>
+                <a class="quicklink" onclick="hire('https://wikipedia.org')">
+                    <img class="shortcut" src="https://en.wikipedia.org/favicon.ico" alt="Wikipedia">
+                    <span>Wikipedia</span>
+                </a>
+                <a class="quicklink" onclick="hire('https://quizlet.com')">
+                    <img class="shortcut" src="https://quizlet.com/favicon.ico" alt="Quizlet">
+                    <span>Quizlet</span>
+                </a>
+                <a class="quicklink" onclick="hire('https://khanacademy.org')">
+                    <img class="shortcut" src="https://www.khanacademy.org/favicon.ico" alt="Khan Academy">
+                    <span>Khan Academy</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Study Resources Center. All rights reserved.</p>
+    </footer>
+
+    <!-- Ultraviolet proxy scripts -->
+    <script src="assets/js/randomSentence.js"></script>
+    <script type="module" src="js/main.js"></script>
+    <script src="assets/uv/js/index.js"></script>
+    <script src="assets/uv/js/hiring.js"></script>
+    <script src="assets/uv/bare.js"></script>
+    <script src="assets/uv/wm.js"></script>
+    <script src="assets/uv/uv.bundle.js" defer></script>
+    <script src="assets/uv/uv.config.js" defer></script>
+</body>
+</html> 

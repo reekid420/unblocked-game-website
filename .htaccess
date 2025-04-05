@@ -1,0 +1,45 @@
+# Disable server signature
+ServerSignature Off
+
+# Prevent directory listing
+Options -Indexes
+
+# Force MIME types to ensure proper rendering
+AddType application/javascript .js
+AddType text/css .css
+AddType text/html .html
+
+# Allow embedding in iframes (helps bypass some filters)
+Header set X-Frame-Options "ALLOWALL"
+
+# Hide from some filtering systems
+<IfModule mod_headers.c>
+    Header unset X-Powered-By
+    Header unset Server
+    
+    # Set content type to help bypass filters
+    Header set Content-Type "text/html; charset=UTF-8"
+    
+    # Attempt to bypass cache-based blocking
+    Header set Cache-Control "private, no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+</IfModule>
+
+# Allow CORS to bypass some restrictions
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    Header set Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range"
+</IfModule>
+
+# Trick some filters by serving content through alternate methods
+RewriteEngine On
+
+# If requesting a blocked extension, serve it as text/plain
+RewriteCond %{REQUEST_URI} \.(game|blocked)$
+RewriteRule ^(.*)$ $1.html [L]
+
+# Alternate access paths
+RewriteCond %{QUERY_STRING} ^bypass=true$
+RewriteRule ^blocked/(.*)$ games/$1 [L] 
