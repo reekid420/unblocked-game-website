@@ -36,10 +36,9 @@
             <div class="proxy-container">
                 <h3>Web Proxy</h3>
                 <p class="proxy-description">Access educational websites through our secure proxy</p>
-                <form id="uv-form" class="proxy-form">
-                    <input id="uv-search-engine" value="https://www.google.com/" type="hidden">
-                    <input id="uv-address" type="text" placeholder="Search the web or enter a URL" class="proxy-input">
-                    <button id="uv-search" type="submit" class="proxy-button"><i class="fas fa-search"></i> Go</button>
+                <form id="searchForm" class="proxy-form">
+                    <input id="searchbar" type="text" placeholder="Search the web or enter a URL" class="proxy-input">
+                    <button type="submit" class="proxy-button"><i class="fas fa-search"></i> Go</button>
                 </form>
             </div>
 
@@ -77,23 +76,23 @@
         <section class="quicklinks-section">
             <h2>Quick Access</h2>
             <div class="quicklinks">
-                <a class="quicklink" onclick="hire('https://google.com')">
+                <a class="quicklink" onclick="window.uv ? redirectToProxy('https://google.com') : hire('https://google.com')">
                     <img class="shortcut" src="https://www.google.com/favicon.ico" alt="Google">
                     <span>Google</span>
                 </a>
-                <a class="quicklink" onclick="hire('https://youtube.com')">
+                <a class="quicklink" onclick="window.uv ? redirectToProxy('https://youtube.com') : hire('https://youtube.com')">
                     <img class="shortcut" src="https://www.youtube.com/favicon.ico" alt="YouTube">
                     <span>YouTube</span>
                 </a>
-                <a class="quicklink" onclick="hire('https://wikipedia.org')">
+                <a class="quicklink" onclick="window.uv ? redirectToProxy('https://wikipedia.org') : hire('https://wikipedia.org')">
                     <img class="shortcut" src="https://en.wikipedia.org/favicon.ico" alt="Wikipedia">
                     <span>Wikipedia</span>
                 </a>
-                <a class="quicklink" onclick="hire('https://quizlet.com')">
+                <a class="quicklink" onclick="window.uv ? redirectToProxy('https://quizlet.com') : hire('https://quizlet.com')">
                     <img class="shortcut" src="https://quizlet.com/favicon.ico" alt="Quizlet">
                     <span>Quizlet</span>
                 </a>
-                <a class="quicklink" onclick="hire('https://khanacademy.org')">
+                <a class="quicklink" onclick="window.uv ? redirectToProxy('https://khanacademy.org') : hire('https://khanacademy.org')">
                     <img class="shortcut" src="https://www.khanacademy.org/favicon.ico" alt="Khan Academy">
                     <span>Khan Academy</span>
                 </a>
@@ -108,11 +107,59 @@
     <!-- Ultraviolet proxy scripts -->
     <script src="assets/js/randomSentence.js"></script>
     <script type="module" src="js/main.js"></script>
-    <script src="assets/uv/js/index.js"></script>
-    <script src="assets/uv/js/hiring.js"></script>
+    <!-- Load the proxy handling scripts -->
     <script src="assets/uv/bare.js"></script>
     <script src="assets/uv/wm.js"></script>
-    <script src="assets/uv/uv.bundle.js" defer></script>
-    <script src="assets/uv/uv.config.js" defer></script>
+    <script src="assets/uv/uv.config.js"></script>
+    <script src="assets/uv/uv.bundle.js"></script>
+    <script src="assets/uv/uv.handler.js"></script>
+    <script src="assets/uv/js/hiring.js"></script>
+    <script type="module" src="js/proxy.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      // Function to register the service worker
+      async function registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+          try {
+            console.log('Registering UV service worker...');
+            
+            // Get the configured path from the UV config
+            const swPath = '/assets/uv/uv.sw.js';
+            
+            // Register the service worker with scope set to /service/
+            const registration = await navigator.serviceWorker.register(swPath, {
+              scope: '/service/'
+            });
+            
+            console.log('UV Service worker registered successfully:', registration.scope);
+            
+            // Initialize bare client
+            window.bareClient = new BareClient('/bare-server/');
+            
+            // Check server connection
+            try {
+              console.log('Checking bare server connection...');
+              const data = await window.bareClient.ping();
+              console.log('Bare server connected successfully:', data);
+            } catch (error) {
+              console.error('Error connecting to bare server:', error);
+            }
+          } catch (error) {
+            console.error('Service worker registration failed:', error);
+          }
+        } else {
+          console.warn('Service workers are not supported in this browser');
+        }
+      }
+      
+      // Wait for scripts to load and then register the service worker
+      window.addEventListener('load', () => {
+        // Allow scripts to initialize properly
+        setTimeout(() => {
+          registerServiceWorker();
+        }, 500);
+      });
+    </script>
 </body>
 </html> 

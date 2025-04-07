@@ -1,0 +1,125 @@
+// Main content area
+main {
+  max-width: $container-max-width;
+  margin: 0 auto;
+  padding: $spacing-large;
+}
+
+// Games section
+.games-section {
+  margin-bottom: $spacing-xlarge;
+
+  h2 {
+    text-align: center;
+    margin-bottom: $spacing-large;
+    color: $primary-color;
+  }
+
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: $spacing-large;
+  }
+
+  @include respond-to('md') {
+    .games-grid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: $spacing-base;
+    }
+  }
+
+  @include respond-to('sm') {
+    .games-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+// Search container
+.search-container {
+  background-color: $card-bg;
+  padding: $spacing-large;
+  border-radius: $border-radius;
+  margin-bottom: $spacing-large;
+  @include box-shadow;
+}
+
+.searchbar {
+  position: relative;
+  margin-bottom: $spacing-base;
+}
+
+#searchbar {
+  width: 100%;
+  padding: $spacing-base;
+  padding-left: $spacing-large;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  background-color: $input-bg;
+  color: $text-color;
+  font-size: $font-size-base;
+  
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+  }
+}
+
+// Quick links section
+.quicklinks {
+  @include flex(row, center, center);
+  flex-wrap: wrap;
+  gap: $spacing-small;
+  margin-top: $spacing-base;
+}
+
+.quicklink {
+  background-color: darken($card-bg, 5%);
+  padding: $spacing-small $spacing-base;
+  border-radius: $border-radius;
+  color: $text-color;
+  @include transition;
+  
+  &:hover {
+    background-color: $primary-dark;
+    color: white;
+  }
+}
+
+.shortcut {
+  display: inline-block;
+  background-color: darken($card-bg, 10%);
+  color: $text-color;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  margin-left: $spacing-small;
+}
+
+// Proxy container
+.proxy-container {
+  background-color: $card-bg;
+  padding: $spacing-large;
+  border-radius: $border-radius;
+  margin-bottom: $spacing-large;
+  text-align: center;
+  @include box-shadow;
+  
+  h3 {
+    color: $primary-color;
+    margin-bottom: $spacing-base;
+  }
+  
+  .proxy-description {
+    margin-bottom: $spacing-base;
+  }
+}
+
+// Random fact
+.fact-message {
+  background-color: darken($card-bg, 5%);
+  padding: $spacing-base;
+  border-radius: $border-radius;
+  margin: $spacing-large 0;
+  font-style: italic;
+} 

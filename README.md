@@ -1,165 +1,92 @@
-# Study Resources Center
+# Unblocked Game Website with UV Proxy
 
-A website that provides educational games, chat rooms, and AI chat help for students. The site also includes a web proxy feature that allows students to access educational resources that might be restricted on school networks.
+This project is an educational platform with study resources and proxy capabilities. It allows users to access educational content, play games, and browse the web securely.
 
 ## Features
 
-- **Educational Games**: A collection of games that promote learning and critical thinking
-- **Study Groups**: Chat rooms where students can collaborate on homework
-- **Homework Help**: AI-powered chat assistant to help with homework questions
-- **Web Proxy**: Access educational websites even on restricted networks
+- Web proxy service using UltraViolet
+- Game collection
+- Study resources
+- Modern UI
 
-## How It Works
+## Setup Instructions
 
-The website uses Ultraviolet, a web proxy built on service workers, to bypass content filters. This enables students to access important educational resources and tools that may be otherwise blocked on school networks.
+1. Clone the repository
 
-### Proxy Architecture
+```bash
+git clone https://github.com/yourusername/unblocked-game-website.git
+cd unblocked-game-website
+```
 
-1. **Client-Side Proxy**: The site uses Ultraviolet to proxy requests directly from the browser
-2. **XOR Encoding**: URLs are encoded to bypass pattern-matching filters
-3. **Service Workers**: Handle intercepting and modifying requests/responses
+2. Install dependencies
 
-## Working with the Proxy
+```bash
+npm install
+```
 
-### How the Proxy Works
+3. Start the server
 
-Our web proxy is implemented using Ultraviolet, a powerful client-side proxy that works through service workers. Here's how it functions:
+```bash
+npm start
+```
 
-1. **URL Encoding**: When a user enters a URL, it gets encoded using Base64 to prevent detection.
-2. **Service Worker Interception**: The UV service worker intercepts outgoing requests that match our proxy pattern.
-3. **Request Handling**: The service worker modifies headers and routes the request through our bare server.
-4. **Content Rewriting**: When responses are received, Ultraviolet rewrites HTML, CSS, and JavaScript to ensure all resources load correctly through the proxy.
-5. **Client-Side Rendering**: The modified content is rendered in the browser, creating a seamless browsing experience.
+4. Visit http://localhost:8080 in your browser
 
-### Setting Up the Proxy
+## Project Structure
 
-To set up the proxy components:
+```
+├── assets/
+│   ├── js/
+│   ├── uv/          # UltraViolet proxy files
+│   └── images/
+├── js/              # Client-side JavaScript
+├── public/          # Static files served by Express
+├── server.js        # Main server implementation
+└── package.json     # Project dependencies
+```
 
-1. **Bare Server Setup**:
-   ```bash
-   npm install @tomphttp/bare-server-node
-   ```
+## Configuration
 
-2. **Create a bare server file** (e.g., `bare-server.js`):
-   ```javascript
-   const { createBareServer } = require('@tomphttp/bare-server-node');
-   const http = require('http');
-   const path = require('path');
-   const fs = require('fs');
-   
-   const bareServer = createBareServer('/bare/');
-   const port = process.env.PORT || 8080;
-   
-   const server = http.createServer((req, res) => {
-     if (bareServer.shouldRoute(req)) {
-       bareServer.routeRequest(req, res);
-     } else {
-       // Serve static files
-       const filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url);
-       try {
-         const data = fs.readFileSync(filePath);
-         res.end(data);
-       } catch (err) {
-         res.statusCode = 404;
-         res.end('404 Not Found');
-       }
-     }
-   });
-   
-   server.on('upgrade', (req, socket, head) => {
-     if (bareServer.shouldRoute(req)) {
-       bareServer.routeUpgrade(req, socket, head);
-     } else {
-       socket.end();
-     }
-   });
-   
-   server.listen(port, () => {
-     console.log(`Server running at http://localhost:${port}/`);
-   });
-   ```
+The UV proxy is configured in the following files:
 
-3. **Run the server**:
-   ```bash
-   node bare-server.js
-   ```
-
-### Using the Proxy
-
-1. **Open the website** in your browser
-2. **Enter a URL** in the proxy search bar
-3. **Click "Go"** or press Enter
-4. The **proxied content** will load in a new tab
-
-### Security Considerations
-
-- The proxy implementation is for educational purposes only
-- All traffic should be secured with HTTPS in production
-- Consider implementing access controls if deploying for a wider audience
-- Regularly update dependencies to patch security vulnerabilities
-
-### Customizing the Proxy
-
-You can customize the proxy behavior by modifying these files:
-
-- `assets/uv/uv.config.js` - Main configuration settings
-- `assets/uv/uv.sw.js` - Service worker implementation
+- `assets/uv/uv.config.js` - Main configuration for UV
 - `assets/uv/bare.js` - Bare server client
-- `assets/uv/wm.js` - URL rewriting mechanisms
+- `assets/uv/uv.sw.js` - Service worker implementation
 
-## Setup
+## Troubleshooting
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/yourusername/unblocked-game-website.git
-   cd unblocked-game-website
-   ```
+### Common Issues
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+1. **Service worker registration fails**
+   - Make sure your browser supports service workers
+   - Check console logs for specific errors
+   - Try clearing the browser cache and service workers
 
-3. Set up the database (PostgreSQL with Prisma):
-   - See detailed instructions in [DB_SETUP.md](DB_SETUP.md)
-   - Create a PostgreSQL database
-   - Configure the connection in `.env`
-   - Run Prisma migrations: `npm run prisma:migrate`
+2. **Bare server connectivity issues**
+   - Verify the server is running properly
+   - Check network tab in browser dev tools
+   - Look for 404/500 errors in server logs
+   - Ensure proper paths are configured in `uv.config.js`
 
-4. Start the server:
-   ```bash
-   npm start
-   ```
+3. **CORS errors**
+   - The server is configured to handle CORS, but some external services may block requests
+   - Check server logs for CORS-related errors
 
-5. Open your browser and navigate to `http://localhost:8080`
+4. **Infinite refresh loops**
+   - Clear browser cache and cookies
+   - Delete all service worker registrations and reload
+   - Check service worker code for recursive fetch patterns
 
-## Technology Stack
+### Debug Logging
 
-- **Frontend**: HTML, CSS, JavaScript
-- **Backend**: Node.js, Express
-- **Proxy**: Ultraviolet
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: JWT (JSON Web Tokens)
+Enable verbose logging by setting the `debug` option to `true` in `uv.config.js`.
 
-## Database Structure
+## Bare Server API Endpoints
 
-The application uses PostgreSQL with Prisma ORM to store:
-
-- **User accounts and authentication data**
-- **Chat messages and rooms**
-- **Game save data**
-- **Proxy usage history**
-
-For more details on the database setup and schema, see [DB_SETUP.md](DB_SETUP.md).
-
-## Educational Purpose
-
-This tool is designed specifically for educational purposes to help students access learning resources. It is not intended to bypass school security systems for non-educational purposes.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+- `/bare-server/` - Main proxy endpoint
+- `/bare-info/` - Server information endpoint
+- `/health` - Health check endpoint
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT

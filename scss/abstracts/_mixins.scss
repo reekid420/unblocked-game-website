@@ -1,0 +1,69 @@
+// Flexbox mixins
+@mixin flex($direction: row, $justify: flex-start, $align: stretch, $wrap: nowrap) {
+  display: flex;
+  flex-direction: $direction;
+  justify-content: $justify;
+  align-items: $align;
+  flex-wrap: $wrap;
+}
+
+// Media query mixins
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == 'sm' {
+    @media (max-width: $breakpoint-sm) { @content; }
+  } @else if $breakpoint == 'md' {
+    @media (max-width: $breakpoint-md) { @content; }
+  } @else if $breakpoint == 'lg' {
+    @media (max-width: $breakpoint-lg) { @content; }
+  } @else if $breakpoint == 'xl' {
+    @media (max-width: $breakpoint-xl) { @content; }
+  }
+}
+
+// Box shadow mixin
+@mixin box-shadow($shadow: $box-shadow) {
+  box-shadow: $shadow;
+}
+
+// Transition mixin
+@mixin transition($property: all, $duration: 0.3s, $timing: ease) {
+  transition: $property $duration $timing;
+}
+
+// Button mixin
+@mixin button($bg-color: $primary-dark, $color: white, $hover-color: $secondary-color) {
+  display: inline-block;
+  background-color: $bg-color;
+  color: $color;
+  padding: $spacing-base $spacing-medium;
+  border: none;
+  border-radius: $border-radius / 2;
+  cursor: pointer;
+  @include transition;
+  
+  &:hover {
+    background-color: $hover-color;
+  }
+}
+
+// Card mixin
+@mixin card {
+  background-color: $card-bg;
+  border-radius: $border-radius;
+  @include box-shadow;
+  padding: $spacing-large;
+}
+
+// Center content
+@mixin center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// Text truncate
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+} 

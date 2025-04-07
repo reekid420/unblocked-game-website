@@ -1,0 +1,29 @@
+footer {
+  text-align: center;
+  padding: $spacing-large;
+  background-color: $card-bg;
+  margin-top: $spacing-xlarge;
+  
+  p {
+    margin-bottom: $spacing-base;
+  }
+  
+  .footer-links {
+    @include flex(row, center, center);
+    gap: $spacing-medium;
+    margin-top: $spacing-base;
+    
+    a {
+      @include transition;
+      
+      &:hover {
+        color: $primary-light;
+      }
+    }
+    
+    @include respond-to('sm') {
+      @include flex(column, center, center);
+      gap: $spacing-small;
+    }
+  }
+} 

@@ -76,4 +76,46 @@ self.UVHandler = UVHandler;
 if (typeof window !== 'undefined') {
   window.uvHandler = new UVHandler(window.__uv$config || {});
   console.log('UV Handler initialized in browser');
+}
+
+/**
+ * Handle opaque responses from the bare server
+ * @param {Response} response - The opaque response
+ * @returns {Response} - A new response with proper CORS headers
+ */
+function handleOpaqueResponse(response) {
+  const headers = new Headers(response.headers);
+  
+  // Add CORS headers
+  headers.set('Access-Control-Allow-Origin', '*');
+  headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  headers.set('Access-Control-Allow-Headers', '*');
+  
+  // Create a new Response with the same body but with CORS headers
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: headers
+  });
+}
+
+/**
+ * Process response from the bare server
+ * @param {Response} response - The response from the bare server
+ * @returns {Promise<Response>} - The processed response
+ */
+async function processBareResponse(response) {
+  // Check if the response is opaque
+  if (response.type === 'opaque' || response.status === 0) {
+    console.warn('Received opaque response from bare server, applying CORS fix');
+    return handleOpaqueResponse(response);
+  }
+  
+  // Check if the response has proper CORS headers
+  if (!response.headers.has('Access-Control-Allow-Origin')) {
+    console.warn('Response missing CORS headers, adding them');
+    return handleOpaqueResponse(response);
+  }
+  
+  return response;
 } 

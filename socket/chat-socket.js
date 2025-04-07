@@ -13,7 +13,10 @@ function initSocketServer(server) {
     cors: {
       origin: "*",
       methods: ["GET", "POST"]
-    }
+    },
+    // Don't attach to HTTP server automatically - we'll handle the upgrade events manually
+    transports: ['websocket', 'polling'],
+    allowUpgrades: true
   });
   
   // Socket.io connection handler

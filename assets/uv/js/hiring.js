@@ -13,18 +13,23 @@ function hire(url) {
     }
 
     try {
-        // Get Ultraviolet instance
-        const uv = window.uv;
-        if (!uv) {
-            console.error('Ultraviolet proxy not initialized');
+        // Access the Ultraviolet config
+        if (typeof __uv$config === 'undefined') {
+            console.error('Ultraviolet config not found');
+            alert('Proxy configuration not loaded. Please reload the page and try again.');
             return;
         }
+        
+        // Add protocol if missing
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+        }
 
-        // Encode the URL using Ultraviolet
-        const encodedURL = uv.encode(url);
-
+        // Use built-in encodeURL function
+        const encodedURL = __uv$config.encodeUrl(url);
+        
         // Navigate to the proxied URL
-        // The prefix is defined in uv.config.js
+        console.log('Redirecting to proxied URL:', url);
         window.location.href = __uv$config.prefix + encodedURL;
     } catch (err) {
         console.error('Error proxying URL:', err);

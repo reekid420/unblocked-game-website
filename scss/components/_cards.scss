@@ -1,0 +1,60 @@
+.game-card {
+  background-color: $card-bg;
+  border-radius: $border-radius;
+  overflow: hidden;
+  @include transition(transform);
+  @include box-shadow;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+  
+  .game-img {
+    height: 150px;
+    background-color: $input-bg;
+  }
+  
+  .placeholder {
+    background-color: $input-bg;
+    @include flex(row, center, center);
+    height: 100%;
+    color: #666;
+  }
+  
+  h3 {
+    padding: $spacing-base;
+    text-align: center;
+  }
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: $spacing-xlarge;
+  padding: $spacing-large;
+  background-color: $card-bg;
+  border-radius: $border-radius;
+  @include box-shadow;
+  
+  h2 {
+    font-size: $font-size-xlarge;
+    margin-bottom: $spacing-base;
+    color: $primary-color;
+  }
+  
+  p {
+    margin-bottom: $spacing-base;
+  }
+}
+
+.info-box {
+  background-color: $card-bg;
+  border-radius: $border-radius;
+  padding: $spacing-large;
+  margin-bottom: $spacing-large;
+  @include box-shadow;
+  
+  h3 {
+    color: $primary-color;
+    margin-bottom: $spacing-base;
+  }
+} 

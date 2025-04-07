@@ -1,13 +1,14 @@
 /**
  * Authentication utilities for client-side code
  */
+import apiClient from './api-client.js';
 
 /**
  * Check if the user is currently logged in
  * @returns {boolean} Whether user is logged in
  */
 function isLoggedIn() {
-  return localStorage.getItem('isLoggedIn') === 'true';
+  return apiClient.isLoggedIn();
 }
 
 /**
@@ -15,7 +16,7 @@ function isLoggedIn() {
  * @returns {string|null} Username or null if not logged in
  */
 function getUsername() {
-  return isLoggedIn() ? localStorage.getItem('username') : null;
+  return localStorage.getItem('username');
 }
 
 /**
@@ -23,9 +24,8 @@ function getUsername() {
  * Clears authentication data from local storage and redirects to home page
  */
 function logout() {
-  localStorage.removeItem('isLoggedIn');
+  apiClient.clearToken();
   localStorage.removeItem('username');
-  localStorage.removeItem('userData'); // Remove temp user data (should use tokens in real app)
   window.location.href = 'index.html';
 }
 
@@ -33,42 +33,45 @@ function logout() {
  * Log the user in
  * @param {string} username - User's username
  * @param {string} password - User's password
- * @returns {boolean} Whether login was successful
+ * @returns {Promise<boolean>} Whether login was successful
  */
-function login(username, password) {
-  // In a real app, this would validate against a server API
-  const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-  
-  if (userData.username === username && userData.password === password) {
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('username', username);
-    return true;
+async function login(username, password) {
+  try {
+    const response = await apiClient.login({ username, password });
+    if (response.user) {
+      localStorage.setItem('username', response.user.username);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Login error:', error);
+    return false;
   }
-  
-  return false;
 }
 
 /**
  * Register a new user
  * @param {string} username - User's username
  * @param {string} password - User's password
- * @returns {boolean} Whether registration was successful
+ * @returns {Promise<boolean>} Whether registration was successful
  */
-function register(username, password) {
-  // In a real app, this would send data to a server API
-  
+async function register(username, password) {
   // Simple validation
   if (password.length < 8) {
     return false;
   }
   
-  // Store user data (In a real app, this would be sent to a server)
-  const userData = { username, password };
-  localStorage.setItem('userData', JSON.stringify(userData));
-  localStorage.setItem('isLoggedIn', 'true');
-  localStorage.setItem('username', username);
-  
-  return true;
+  try {
+    const response = await apiClient.register({ username, password });
+    if (response.user) {
+      localStorage.setItem('username', response.user.username);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Registration error:', error);
+    return false;
+  }
 }
 
 /**

@@ -46,7 +46,7 @@ async function generateChatResponse(userId, message) {
     
     // Initialize the AI client
     const genAI = initializeGemini();
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
     
     // Add user message to history
     session.history.push({ role: 'user', parts: [{ text: message }] });

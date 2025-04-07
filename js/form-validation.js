@@ -10,7 +10,7 @@ function initializeSignupForm() {
   const signupForm = document.getElementById('signupForm');
   
   if (signupForm) {
-    signupForm.addEventListener('submit', function(e) {
+    signupForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       
       const username = document.getElementById('username').value;
@@ -29,12 +29,18 @@ function initializeSignupForm() {
         return;
       }
       
-      // Call the register function
-      if (register(username, password)) {
-        alert('Account created successfully!');
-        window.location.href = 'index.html';
-      } else {
-        alert('Failed to create account');
+      try {
+        // Call the register function (now async)
+        const success = await register(username, password);
+        if (success) {
+          alert('Account created successfully!');
+          window.location.href = 'index.html';
+        } else {
+          alert('Failed to create account. Username may already exist.');
+        }
+      } catch (error) {
+        console.error('Registration error:', error);
+        alert('An error occurred during registration: ' + (error.message || 'Unknown error'));
       }
     });
   }
@@ -47,17 +53,23 @@ function initializeLoginForm() {
   const loginForm = document.getElementById('loginForm');
   
   if (loginForm) {
-    loginForm.addEventListener('submit', function(e) {
+    loginForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       
-      // Call the login function
-      if (login(username, password)) {
-        window.location.href = 'index.html';
-      } else {
-        alert('Invalid username or password');
+      try {
+        // Call the login function (now async)
+        const success = await login(username, password);
+        if (success) {
+          window.location.href = 'index.html';
+        } else {
+          alert('Invalid username or password');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        alert('An error occurred during login: ' + (error.message || 'Unknown error'));
       }
     });
   }

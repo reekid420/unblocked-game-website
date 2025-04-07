@@ -1,0 +1,50 @@
+header {
+  background-color: $card-bg;
+  padding: $spacing-base $spacing-large;
+  @include flex(row, space-between, center);
+  box-shadow: $header-shadow;
+
+  .logo {
+    h1 {
+      color: $primary-color;
+      font-size: $font-size-large;
+    }
+  }
+
+  nav {
+    ul {
+      @include flex(row, flex-end, center);
+
+      li {
+        margin-left: $spacing-medium;
+
+        a {
+          padding: $spacing-small;
+          @include transition;
+
+          &:hover {
+            color: $primary-light;
+          }
+        }
+      }
+    }
+  }
+
+  @include respond-to('md') {
+    @include flex(column, center, center);
+    padding: $spacing-base;
+    
+    .logo {
+      margin-bottom: $spacing-base;
+    }
+    
+    nav ul {
+      @include flex(row, center, center);
+      flex-wrap: wrap;
+      
+      li {
+        margin: 0 $spacing-small $spacing-small;
+      }
+    }
+  }
+} 

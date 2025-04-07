@@ -1,0 +1,75 @@
+.form-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: $spacing-large;
+  @include card;
+  
+  h2 {
+    text-align: center;
+    margin-bottom: $spacing-large;
+    color: $primary-color;
+  }
+}
+
+.form-group {
+  margin-bottom: $spacing-medium;
+  
+  label {
+    display: block;
+    margin-bottom: $spacing-small;
+  }
+  
+  input {
+    width: 100%;
+    padding: $spacing-base;
+    border: 1px solid $border-color;
+    border-radius: $border-radius / 2;
+    background-color: $input-bg;
+    color: $text-color;
+    @include transition;
+    
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+    }
+  }
+  
+  .error-message {
+    color: #ff5252;
+    font-size: 0.9rem;
+    margin-top: $spacing-small;
+  }
+}
+
+.proxy-form {
+  @include flex(row, center, stretch);
+  margin: $spacing-medium 0;
+  
+  @include respond-to('md') {
+    flex-direction: column;
+    
+    .proxy-button {
+      border-radius: $border-radius;
+      margin-top: $spacing-small;
+    }
+  }
+}
+
+.proxy-input {
+  width: 100%;
+  padding: $spacing-base;
+  border: 1px solid $border-color;
+  border-radius: $border-radius 0 0 $border-radius;
+  background-color: $input-bg;
+  color: $text-color;
+  @include transition;
+  
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+  }
+  
+  @include respond-to('md') {
+    border-radius: $border-radius;
+  }
+} 

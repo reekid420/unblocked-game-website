@@ -1,0 +1,19 @@
+// Abstract imports
+@import 'abstracts/variables';
+@import 'abstracts/mixins';
+
+// Base imports
+@import 'base/reset';
+
+// Layout imports
+@import 'layout/header';
+@import 'layout/footer';
+
+// Components imports
+@import 'components/buttons';
+@import 'components/forms';
+@import 'components/cards';
+@import 'components/chat';
+
+// Pages imports
+@import 'pages/home'; 

@@ -1,0 +1,67 @@
+.btn {
+  @include button;
+  
+  &--secondary {
+    @include button($secondary-color, white, $primary-dark);
+  }
+  
+  &--large {
+    padding: $spacing-medium $spacing-large;
+    font-size: $font-size-large;
+  }
+  
+  &--small {
+    padding: $spacing-small $spacing-base;
+    font-size: 0.9rem;
+  }
+  
+  &--block {
+    display: block;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.play-btn {
+  display: block;
+  background-color: $primary-dark;
+  color: white;
+  text-align: center;
+  padding: $spacing-base;
+  @include transition;
+  
+  &:hover {
+    background-color: $secondary-color;
+  }
+}
+
+.topic-btn {
+  display: inline-block;
+  background-color: $card-bg;
+  color: $text-color;
+  padding: $spacing-small $spacing-base;
+  margin: $spacing-small;
+  border-radius: $border-radius;
+  border: 1px solid $primary-color;
+  cursor: pointer;
+  @include transition;
+  
+  &:hover {
+    background-color: $primary-dark;
+    color: white;
+  }
+}
+
+.proxy-button {
+  background-color: $primary-dark;
+  color: white;
+  border: none;
+  padding: $spacing-base $spacing-medium;
+  border-radius: 0 $border-radius $border-radius 0;
+  cursor: pointer;
+  @include transition;
+  
+  &:hover {
+    background-color: $secondary-color;
+  }
+} 
