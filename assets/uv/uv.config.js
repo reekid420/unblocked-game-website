@@ -2,6 +2,25 @@
  * Ultraviolet Configuration
  * This file contains settings for the Ultraviolet proxy
  */
+
+// Ensure encoding/decoding functions are defined if they're not already
+if (typeof self.__uv$encodeUrl !== 'function') {
+    self.__uv$encodeUrl = (url) => {
+        console.log('[UV Config] Encoding URL:', url);
+        return btoa(url).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    };
+}
+
+if (typeof self.__uv$decodeUrl !== 'function') {
+    self.__uv$decodeUrl = (encoded) => {
+        console.log('[UV Config] Decoding URL:', encoded);
+        encoded = encoded.replace(/-/g, '+').replace(/_/g, '/');
+        // Add padding if needed
+        while (encoded.length % 4) encoded += '=';
+        return atob(encoded);
+    };
+}
+
 self.__uv$config = {
     /**
      * The prefix for UV (Ultraviolet) resources.

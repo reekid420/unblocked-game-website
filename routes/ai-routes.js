@@ -1,5 +1,5 @@
 const express = require('express');
-const { generateChatResponse } = require('../api/gemini');
+const { generateChatResponse, ERROR_TYPES } = require('../api/gemini');
 const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
@@ -16,10 +16,29 @@ router.post('/chat', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Message is required' });
     }
     
-    // Call the Gemini API
-    const response = await generateChatResponse(req.user.id, message);
+    // Call the Gemini API - now returns an object with text, error, and errorType properties
+    const result = await generateChatResponse(req.user.id, message);
     
-    res.json({ response });
+    // If there was an error but it's just rate limiting, use 429 status code
+    if (result.error) {
+      if (result.errorType === ERROR_TYPES.RATE_LIMITED) {
+        return res.status(429).json({ 
+          error: 'Rate limit exceeded', 
+          message: result.text,
+          retryAfter: 60 // Suggest retry after 60 seconds
+        });
+      }
+      
+      // For other errors, still return 200 but include error info
+      return res.json({ 
+        response: result.text,
+        hasError: true,
+        errorType: result.errorType || 'UNKNOWN'
+      });
+    }
+    
+    // Normal successful response
+    res.json({ response: result.text });
   } catch (error) {
     console.error('AI chat error:', error);
     res.status(500).json({ error: 'Failed to generate AI response' });

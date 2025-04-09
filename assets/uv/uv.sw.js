@@ -5,9 +5,56 @@
 
 console.log('[UV SW] Worker loading');
 
-self.importScripts('/assets/uv/uv.bundle.js');
-self.importScripts('/assets/uv/uv.config.js');
-self.importScripts('/assets/uv/bare.js');
+// Safely import scripts with error handling
+function safeImport(url) {
+  try {
+    self.importScripts(url);
+    console.log(`[UV SW] Successfully imported: ${url}`);
+    return true;
+  } catch (error) {
+    console.error(`[UV SW] Failed to import: ${url}`, error);
+    return false;
+  }
+}
+
+// Service worker URL base - detect dynamically
+const swLocation = self.location.pathname;
+const basePath = swLocation.substring(0, swLocation.lastIndexOf('/') + 1);
+console.log(`[UV SW] Base path detected as: ${basePath}`);
+
+// List of required scripts with absolute and relative paths for fallback
+const scripts = [
+  { name: 'uv.bundle.js', paths: [`${basePath}uv.bundle.js`, '/assets/uv/uv.bundle.js'] },
+  { name: 'uv.config.js', paths: [`${basePath}uv.config.js`, '/assets/uv/uv.config.js'] },
+  { name: 'bare.js', paths: [`${basePath}bare.js`, '/assets/uv/bare.js'] }
+];
+
+// Try importing each script with fallbacks
+let importSuccess = true;
+for (const script of scripts) {
+  let imported = false;
+  
+  // Try each possible path
+  for (const path of script.paths) {
+    if (safeImport(path)) {
+      imported = true;
+      break;
+    }
+  }
+  
+  // If all paths failed, mark overall success as false
+  if (!imported) {
+    console.error(`[UV SW] Could not import ${script.name} from any path`);
+    importSuccess = false;
+  }
+}
+
+// Log overall import status
+if (importSuccess) {
+  console.log('[UV SW] All scripts imported successfully');
+} else {
+  console.error('[UV SW] Some scripts failed to import, service worker may not function correctly');
+}
 
 try {
   // Create ultraviolet instance

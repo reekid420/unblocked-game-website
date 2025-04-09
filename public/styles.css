@@ -271,6 +271,10 @@ footer {
   background-color: #1e1e1e;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+  .hero h1 {
+    font-size: 2.5rem;
+    margin: 0 0 1.5rem 0;
+    color: #4fc3f7; }
   .hero h2 {
     font-size: 2rem;
     margin-bottom: 1rem;

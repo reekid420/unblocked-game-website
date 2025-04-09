@@ -9,7 +9,7 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
-
+package-lock.json
 # Logs
 logs/
 *.log
@@ -57,6 +57,7 @@ Thumbs.db
 Focus.md
 nodemon.json
 improvements-roadmap.json
+.windsurfrules
 # Testing and coverage
 coverage/
 .nyc_output/

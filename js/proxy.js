@@ -383,8 +383,36 @@ async function registerServiceWorker() {
       return false;
     }
     
+    // Check if we're on HTTPS - service workers require secure context
+    const isSecureContext = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    
+    if (!isSecureContext) {
+      logger.warn('Service worker registration may fail: Not in a secure context (HTTPS required)');
+      // We'll still attempt registration but display a warning to the user
+      const warningEl = document.createElement('div');
+      warningEl.style.position = 'fixed';
+      warningEl.style.bottom = '10px';
+      warningEl.style.left = '10px';
+      warningEl.style.backgroundColor = 'rgba(255, 193, 7, 0.9)';
+      warningEl.style.color = 'black';
+      warningEl.style.padding = '10px';
+      warningEl.style.borderRadius = '5px';
+      warningEl.style.zIndex = '9999';
+      warningEl.style.maxWidth = '300px';
+      warningEl.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+      warningEl.innerHTML = 'For full proxy features, please use HTTPS. Some functionality may be limited.';
+      document.body.appendChild(warningEl);
+      
+      // Remove after 10 seconds
+      setTimeout(() => {
+        if (warningEl.parentNode) {
+          warningEl.parentNode.removeChild(warningEl);
+        }
+      }, 10000);
+    }
+    
     // Use the correct path for the service worker
-    const swUrl = `/assets/uv/uv.sw.js`;
+    const swUrl = `/assets/uv/uv.sw.js?v=${Date.now()}`; // Add cache-busting parameter
     
     logger.info('Registering service worker from:', swUrl);
     logger.info('Service worker scope:', '/service/');
@@ -408,10 +436,13 @@ async function registerServiceWorker() {
       // Continue anyway
     }
     
-    // Register the new service worker with the correct scope
-    const registration = await navigator.serviceWorker.register(swUrl, {
-      scope: '/service/'
-    });
+    // Try registering with more options to help with insecure contexts
+    const regOptions = {
+      scope: '/service/',
+      updateViaCache: 'none' // Don't use cached versions
+    };
+    
+    const registration = await navigator.serviceWorker.register(swUrl, regOptions);
     
     logger.info('Service worker registered successfully:', registration);
     
