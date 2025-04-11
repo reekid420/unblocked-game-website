@@ -42,6 +42,20 @@ for (const script of scripts) {
     }
   }
   
+  // If we couldn't import this script at all, log an error
+  if (!imported) {
+    console.error(`[UV SW] Critical: Could not import ${script.name} from any path`);
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({ 
+          type: 'uv-error', 
+          message: `Failed to load required script: ${script.name}` 
+        });
+      });
+    });
+    importSuccess = false;
+  }
+  
   // If all paths failed, mark overall success as false
   if (!imported) {
     console.error(`[UV SW] Could not import ${script.name} from any path`);

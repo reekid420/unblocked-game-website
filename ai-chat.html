@@ -4,10 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Homework Help - Study Resources Center</title>
-    <link rel="stylesheet" href="/public/styles.css">
+    <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Socket.io client library -->
     <script src="/socket.io/socket.io.js"></script>
+    <!-- Fallback Socket.io client from CDN if local fails -->
+    <script>
+        if (typeof io === 'undefined') {
+            console.log('Loading Socket.io from CDN as fallback');
+            document.write('<script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"><\/script>');
+        }
+    </script>
+    
+    <!-- UV Proxy dependencies -->
+    <script src="/assets/uv/bare.js"></script>
 </head>
 <body>
     <header>
@@ -103,8 +113,9 @@
                     });
             }
             
-            // Connect to Socket.io server
-            const socket = io();
+            // Connect to Socket.io server with error handling
+            const socket = io({reconnection: true, reconnectionDelay: 1000, reconnectionAttempts: 5});
+            console.log('Initializing Socket.io connection');
             
             // Event: Socket connected
             socket.on('connect', () => {
@@ -113,8 +124,26 @@
             
             // Event: Socket error
             socket.on('connect_error', (error) => {
-                console.error('Connection error:', error);
+                console.error('Socket.io connection error:', error);
                 addMessage('System: Connection error. Please refresh the page.', 'system-message');
+            });
+            
+            // Handle disconnect
+            socket.on('disconnect', (reason) => {
+                console.warn('Socket disconnected:', reason);
+                addMessage('System: Disconnected from server. Attempting to reconnect...', 'system-message');
+            });
+            
+            // Handle reconnect success
+            socket.on('reconnect', (attemptNumber) => {
+                console.log('Successfully reconnected after', attemptNumber, 'attempts');
+                addMessage('System: Reconnected to server.', 'system-message');
+            });
+            
+            // Handle reconnect error
+            socket.on('reconnect_error', (error) => {
+                console.error('Error reconnecting:', error);
+                addMessage('System: Failed to reconnect. Please refresh the page.', 'system-message');
             });
             
             // Event: AI response received
@@ -123,6 +152,13 @@
                 
                 // Hide typing indicator
                 typingIndicator.textContent = '';
+                
+                // Verify data structure
+                if (!data || !data.message) {
+                    console.error('Invalid AI response format:', data);
+                    addMessage("I'm sorry, I received an invalid response. Please try again.", 'system-message');
+                    return;
+                }
                 
                 // Add AI response to chat
                 addMessage(data.message, 'ai-message');
@@ -160,12 +196,31 @@
                 // Show typing indicator
                 typingIndicator.textContent = 'AI is thinking...';
                 
-                // Send message to server
+                // Check if socket is connected first
+                if (!socket.connected) {
+                    console.error('Cannot send message - socket disconnected');
+                    typingIndicator.textContent = '';
+                    addMessage('System: Not connected to server. Please refresh the page.', 'system-message');
+                    return;
+                }
+                
+                console.log('Sending message to AI:', message);
+                
+                // Send message to server with timeout
                 socket.emit('ai-message', {
                     message,
                     username,
                     token
                 });
+                
+                // Set a timeout in case server doesn't respond
+                setTimeout(() => {
+                    if (typingIndicator.textContent === 'AI is thinking...') {
+                        console.warn('AI response timeout');
+                        typingIndicator.textContent = '';
+                        addMessage('System: No response from AI. Please try again.', 'system-message');
+                    }
+                }, 15000); // 15 second timeout
                 
                 // Clear input
                 messageInput.value = '';

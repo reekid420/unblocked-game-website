@@ -648,6 +648,14 @@ async function registerServiceWorker() {
         
         logger.info('Initial Firefox service worker registration succeeded');
         
+        // Add service worker message listener for error reporting
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          if (event.data && event.data.type === 'uv-error') {
+            logger.error(`Service worker error: ${event.data.message}`);
+            showProxyError(`Service Worker Error: ${event.data.message}`);
+          }
+        });
+        
         // If that worked, try with scope
         registration = await navigator.serviceWorker.register(swUrl, swOptions);
         
@@ -715,7 +723,35 @@ async function registerServiceWorker() {
     // Initialize bare client with the correct server path
     if (!window.bareClient) {
       logger.info('Initializing bare client');
-      window.bareClient = new BareClient('/bare-server/');
+      try {
+        // Check if BareClient is available
+        if (typeof BareClient === 'undefined') {
+          logger.warn('BareClient not defined, checking if it exists on window');
+          // Try to access BareClient from window object as fallback
+          if (window.BareClient) {
+            logger.info('Found BareClient on window object');
+            window.bareClient = new window.BareClient('/bare-server/');
+          } else {
+            logger.error('BareClient is not available - proxy functionality may be limited');
+            // Create a dummy bareClient to prevent errors
+            window.bareClient = { 
+              status: { error: 'BareClient not available' },
+              fetch: () => Promise.reject(new Error('BareClient not available')) 
+            };
+          }
+        } else {
+          // Normal initialization
+          window.bareClient = new BareClient('/bare-server/');
+          logger.info('BareClient initialized successfully');
+        }
+      } catch (error) {
+        logger.error('Error initializing BareClient:', error);
+        // Create a dummy bareClient to prevent further errors
+        window.bareClient = { 
+          status: { error: error.message },
+          fetch: () => Promise.reject(error) 
+        };
+      }
     }
     
     // Add message channel to communicate with service worker
@@ -833,7 +869,6 @@ async function registerServiceWorker() {
           
           if (event.target.state === 'activated') {
             clearTimeout(timeout);
-            logger.info('Service worker activated');
             resolve(true);
           } else if (event.target.state === 'redundant') {
             clearTimeout(timeout);
@@ -960,10 +995,126 @@ async function validateProxyService() {
   return validation;
 }
 
+/**
+ * Check bare server connectivity
+ * @returns {Promise<boolean>} - Whether the bare server is reachable
+ */
+async function testBareServer() {
+  try {
+    logger.info('Testing connectivity to bare server...');
+    
+    // Use the bare client initialized in bare.js
+    if (!window.bareClient) {
+      logger.error('BareClient not initialized');
+      // Try to initialize bare client if it wasn't already
+      try {
+        window.bareClient = new BareClient('/bare-server/');
+        logger.info('Created new BareClient instance');
+      } catch (initError) {
+        logger.error('Failed to create BareClient:', initError);
+        return false;
+      }
+    }
+    
+    // Ping the server using a more robust approach
+    // First try the ping() method
+    try {
+      const info = await window.bareClient.ping();
+      logger.info('Bare server connection successful:', info);
+      return true;
+    } catch (pingError) {
+      logger.warn('Initial ping failed, trying fallback method:', pingError);
+      
+      // Fallback: Try a direct fetch to the bare server endpoint
+      try {
+        const response = await fetch('/bare-server/', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          logger.info('Bare server reached using fallback method:', data);
+          return true;
+        } else {
+          throw new Error(`Server responded with status ${response.status}`);
+        }
+      } catch (fallbackError) {
+        logger.error('Bare server connection failed (all methods):', fallbackError);
+        showProxyError(`Cannot connect to proxy server: ${fallbackError.message}`);
+        return false;
+      }
+    }
+  } catch (error) {
+    logger.error('Bare server connection failed:', error);
+    showProxyError(`Proxy server error: ${error.message}`);
+    return false;
+  }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', initializeProxy);
 
 // Export functions for use in other modules
+/**
+ * Show proxy error to the user
+ * @param {string} message - The error message to display
+ */
+function showProxyError(message) {
+  // Create or get the error container
+  let errorContainer = document.getElementById('proxy-error-container');
+  
+  if (!errorContainer) {
+    errorContainer = document.createElement('div');
+    errorContainer.id = 'proxy-error-container';
+    errorContainer.style.position = 'fixed';
+    errorContainer.style.top = '0';
+    errorContainer.style.left = '0';
+    errorContainer.style.right = '0';
+    errorContainer.style.backgroundColor = '#f44336';
+    errorContainer.style.color = 'white';
+    errorContainer.style.padding = '12px 15px';
+    errorContainer.style.zIndex = '9999';
+    errorContainer.style.textAlign = 'center';
+    errorContainer.style.display = 'flex';
+    errorContainer.style.justifyContent = 'space-between';
+    errorContainer.style.alignItems = 'center';
+    document.body.prepend(errorContainer);
+  }
+  
+  // Create message element
+  const messageEl = document.createElement('span');
+  messageEl.textContent = `Proxy Error: ${message}`;
+  
+  // Create dismiss button
+  const dismissBtn = document.createElement('button');
+  dismissBtn.textContent = 'Dismiss';
+  dismissBtn.style.backgroundColor = 'white';
+  dismissBtn.style.border = 'none';
+  dismissBtn.style.padding = '5px 10px';
+  dismissBtn.style.cursor = 'pointer';
+  dismissBtn.style.marginLeft = '15px';
+  dismissBtn.style.borderRadius = '4px';
+  dismissBtn.style.color = '#f44336';
+  dismissBtn.onclick = () => {
+    errorContainer.style.display = 'none';
+  };
+  
+  // Clear previous content
+  errorContainer.innerHTML = '';
+  errorContainer.appendChild(messageEl);
+  errorContainer.appendChild(dismissBtn);
+  errorContainer.style.display = 'flex';
+  
+  // Auto-hide after 15 seconds
+  setTimeout(() => {
+    if (errorContainer) {
+      errorContainer.style.display = 'none';
+    }
+  }, 15000);
+}
+
 export { 
   initializeProxy, 
   processQuery, 

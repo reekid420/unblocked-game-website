@@ -58,6 +58,7 @@ Focus.md
 nodemon.json
 improvements-roadmap.json
 .windsurfrules
+.windsurfignore
 # Testing and coverage
 coverage/
 .nyc_output/

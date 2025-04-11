@@ -14,7 +14,7 @@ This project is an educational platform with study resources and proxy capabilit
 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/unblocked-game-website.git
+git clone https://github.com/rekeid420/unblocked-game-website.git
 cd unblocked-game-website
 ```
 

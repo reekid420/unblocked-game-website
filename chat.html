@@ -4,10 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study Groups - Study Resources Center</title>
-    <link rel="stylesheet" href="/public/styles.css">
+    <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Socket.io client library -->
     <script src="/socket.io/socket.io.js"></script>
+    <!-- Fallback Socket.io client from CDN if local fails -->
+    <script>
+        if (typeof io === 'undefined') {
+            console.log('Loading Socket.io from CDN as fallback');
+            document.write('<script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"><\/script>');
+        }
+    </script>
+    
+    <!-- UV Proxy dependencies -->
+    <script src="/assets/uv/bare.js"></script>
 </head>
 <body>
     <header>
