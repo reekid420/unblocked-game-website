@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting...</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+    }
+    h1 {
+      color: #4a4a4a;
+      margin-bottom: 20px;
+    }
+    .loader {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .url {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      word-break: break-all;
+      margin: 15px 0;
+      font-family: monospace;
+    }
+    .message {
+      color: #666;
+      margin: 15px 0;
+    }
+    .redirect-form {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Redirecting to Proxy</h1>
+    <div class="loader"></div>
+    <div class="message">You are being redirected to:</div>
+    <div class="url"><%= url %></div>
+    <p>Please wait while we connect you to the requested website...</p>
+    
+    <!-- Hidden form for redirection -->
+    <form id="redirectForm" class="redirect-form" method="POST" action="/proxy">
+      <input type="hidden" name="url" value="<%= url %>">
+      <% if (csrfToken) { %>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <% } %>
+    </form>
+  </div>
+
+  <script>
+    // Submit the form automatically after a short delay
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        document.getElementById('redirectForm').submit();
+      }, 1500);
+    });
+  </script>
+</body>
+</html>

@@ -51,8 +51,7 @@ async def health_check():
     return {"status": "healthy", "timestamp": time.time()}
 
 if __name__ == "__main__":
-    # Get port from environment or use default
-    port = int(os.environ.get("PORT", 8000))
+    port = 6078
     
     # Run the application with uvicorn
     uvicorn.run(

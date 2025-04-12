@@ -2,7 +2,8 @@
 node_modules/
 .pnp/
 .pnp.js
-
+venv
+TEMP_nginx&pm2_setup.md
 # Environment variables and secrets
 .env
 .env.local

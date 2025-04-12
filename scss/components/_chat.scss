@@ -1,3 +1,8 @@
+@use 'sass:math';
+@use 'sass:color';
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
 .chat-container {
   @include flex(row, flex-start, stretch);
   height: 70vh;
@@ -10,7 +15,7 @@
 
 .chat-rooms {
   width: 20%;
-  background-color: darken($card-bg, 3%);
+  background-color: color.adjust($card-bg, $lightness: -5%);
   padding: $spacing-base;
   overflow-y: auto;
   
@@ -26,7 +31,7 @@
     
     li {
       padding: $spacing-small $spacing-base;
-      border-radius: $border-radius / 2;
+      border-radius: math.div($border-radius, 2);
       margin-bottom: $spacing-small;
       cursor: pointer;
       @include transition;
@@ -50,9 +55,9 @@
     width: 100%;
     padding: $spacing-small;
     border: 1px solid $border-color;
-    border-radius: $border-radius / 2;
+    border-radius: math.div($border-radius, 2);
     background-color: $input-bg;
-    color: $text-color;
+    color: color.adjust($text-color, $lightness: -20%);
     margin-bottom: $spacing-small;
   }
   
@@ -69,7 +74,7 @@
   
   .chat-header {
     padding: $spacing-base;
-    background-color: darken($card-bg, 5%);
+    background-color: color.adjust($card-bg, $lightness: -5%);
     border-bottom: 1px solid $border-color;
     @include flex(row, space-between, center);
     
@@ -113,14 +118,14 @@
   
   .ai-message {
     align-self: flex-start;
-    background-color: darken($primary-dark, 10%);
+    background-color: color.adjust($primary-dark, $lightness: -10%);
     color: white;
   }
   
   .system-message {
     align-self: center;
-    background-color: transparentize($border-color, 0.5);
-    color: darken($text-color, 20%);
+    background-color: color.adjust($border-color, $alpha: -0.5);
+    color: color.adjust($text-color, $lightness: -20%);
     font-style: italic;
     font-size: 0.9rem;
     padding: $spacing-small;
@@ -131,12 +136,12 @@
     align-self: flex-start;
     padding: $spacing-small;
     font-style: italic;
-    color: darken($text-color, 20%);
+    color: color.adjust($text-color, $lightness: -20%);
   }
   
   .chat-input {
     padding: $spacing-base;
-    background-color: darken($card-bg, 5%);
+    background-color: color.adjust($card-bg, $lightness: -5%);
     border-top: 1px solid $border-color;
     @include flex(row, space-between, center);
     
@@ -144,9 +149,9 @@
       flex: 1;
       padding: $spacing-base;
       border: 1px solid $border-color;
-      border-radius: $border-radius / 2;
+      border-radius: math.div($border-radius, 2);
       background-color: $input-bg;
-      color: $text-color;
+      color: color.adjust($text-color, $lightness: -20%);
       margin-right: $spacing-small;
       
       &:focus {
@@ -159,7 +164,7 @@
 
 .chat-users {
   width: 20%;
-  background-color: darken($card-bg, 3%);
+  background-color: color.adjust($card-bg, $lightness: -5%);
   padding: $spacing-base;
   border-left: 1px solid $border-color;
   overflow-y: auto;
@@ -187,7 +192,7 @@
     width: 25%;
     background-color: $card-bg;
     padding: $spacing-base;
-    border-radius: $border-radius 0 0 $border-radius;
+    border-radius: math.div($border-radius, 2);
     @include box-shadow;
     
     .ai-info {

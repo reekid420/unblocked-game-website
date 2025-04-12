@@ -1,19 +1,23 @@
+// Import Sass modules
+@use 'sass:math';
+@use 'sass:color';
+
 // Abstract imports
-@import 'abstracts/variables';
-@import 'abstracts/mixins';
+@use 'abstracts/variables' as *;
+@use 'abstracts/mixins' as *;
 
 // Base imports
-@import 'base/reset';
+@use 'base/reset' as *;
 
 // Layout imports
-@import 'layout/header';
-@import 'layout/footer';
+@use 'layout/header' as *;
+@use 'layout/footer' as *;
 
 // Components imports
-@import 'components/buttons';
-@import 'components/forms';
-@import 'components/cards';
-@import 'components/chat';
+@use 'components/buttons' as *;
+@use 'components/forms' as *;
+@use 'components/cards' as *;
+@use 'components/chat' as *;
 
 // Pages imports
-@import 'pages/home'; 
+@use 'pages/home' as *; 

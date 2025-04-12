@@ -3,9 +3,15 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
-const { createBareServer } = require('@tomphttp/bare-server-node');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const axios = require('axios');
+const dotenv = require('dotenv');
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
+
+// Load environment variables
+dotenv.config();
 
 // Configure app and server
 const app = express();
@@ -54,54 +60,29 @@ const { initSocketServer } = require('./socket/chat-socket');
 // Pass the io object instead of creating a new one in chat-socket.js
 initSocketServer(io);
 
-// Create a Bare server instance with enhanced configuration
-const bareServer = createBareServer('/bare-server/', {
-  // Enable detailed logging for debugging
-  logErrors: true,
-  verbose: true,
-  // Server identity information
-  maintainer: {
-    email: 'admin@example.com',
-    website: 'https://example.com'
-  },
-  // Data directory for bare server
-  directory: path.join(__dirname, 'bare'),
-  // Allow browser validation to pass
-  filterRemote: (url) => true,
-  // Enhanced CORS settings
-  cors: {
-    origin: '*', // Allow all origins for development
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Content-Length', 'Authorization', 'X-Requested-With', 'Cache']
-  },
-  // Keepalive timeout in milliseconds
-  keepAliveTimeout: 120000, // Increased timeout for better stability
-  // Maximum request size in bytes (30MB)
-  maxRequestSize: 30000000,
-  // Improved error handling
-  errorHandler: (err, req, res) => {
-    console.error(`[Bare] Error in bare server: ${err.stack || err.message || err}`);
-    
-    // Ensure proper response format
-    if (!res.headersSent) {
-      res.setHeader('Content-Type', 'application/json');
-      res.writeHead(500);
-      res.end(JSON.stringify({
-        error: 'Bare Server Error',
-        message: err.message || 'Unknown error occurred',
-        code: err.code || 'UNKNOWN_ERROR'
-      }));
-    }
-    return true; // Mark as handled
-  }
-});
+// Python Proxy Configuration
+const PYTHON_PROXY_URL = process.env.PYTHON_PROXY_URL || 'http://localhost:6078';
+const PYTHON_PROXY_ENABLED = process.env.PYTHON_PROXY_ENABLED === 'true';
 
-// Ensure bare directory exists with proper permissions
-const bareDir = path.join(__dirname, 'bare');
-if (!fs.existsSync(bareDir)) {
-  console.log(`Creating Bare server directory: ${bareDir}`);
-  fs.mkdirSync(bareDir, { recursive: true, mode: 0o755 });
+// Logger for Python proxy
+const pythonProxyLogger = {
+  info: (message, ...args) => console.log(`[PythonProxy] ${message}`, ...args),
+  warn: (message, ...args) => console.warn(`[PythonProxy] ${message}`, ...args),
+  error: (message, ...args) => console.error(`[PythonProxy] ${message}`, ...args)
+};
+
+pythonProxyLogger.info(`Python Proxy URL: ${PYTHON_PROXY_URL}`);
+pythonProxyLogger.info(`Python Proxy Enabled: ${PYTHON_PROXY_ENABLED}`);
+
+// Check Python proxy health on startup
+if (PYTHON_PROXY_ENABLED) {
+  axios.get(`${PYTHON_PROXY_URL}/health`)
+    .then(response => {
+      pythonProxyLogger.info('Python proxy health check:', response.data);
+    })
+    .catch(error => {
+      pythonProxyLogger.error('Python proxy health check failed:', error.message);
+    });
 }
 
 // Middleware
@@ -116,7 +97,26 @@ app.use(cors({
   credentials: true
 }));
 
-// Configure the server to route requests to either the bare server or Express
+// Cookie parser and session middleware
+app.use(cookieParser());
+app.use(session({
+  secret: process.env.JWT_SECRET || 'default-secret',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
+
+// Set up EJS as the view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// Import routes
+const pythonProxyRoutes = require('./routes/python-proxy-routes');
+
+// Use routes
+app.use('/api', pythonProxyRoutes);
+
+// Configure the server to handle requests
 server.on('request', (req, res) => {
   // Safeguard against missing URL
   if (!req.url) {
@@ -182,72 +182,17 @@ server.on('request', (req, res) => {
     return originalRemoveHeader.apply(this, arguments);
   };
 
-  // Check if this is a request for the Bare server
-  if (bareServer.shouldRoute(req)) {
-    console.log(`[Bare] Routing request to Bare server: ${req.url}`);
-    try {
-      // Fix content-type handling for proxy responses
-      const origSetHeader = res.setHeader;
-      res.setHeader = function(name, value) {
-        if (name.toLowerCase() === 'content-type') {
-          console.log(`[Bare] Setting Content-Type header to: ${value}`);
-        }
-        return origSetHeader.call(this, name, value);
-      };
-      
-      // Tag this request as a Bare server request for middleware to recognize
-      req.isBareRequest = true;
-      
-      // Protect against exceptions in Bare server request handling
-      bareServer.routeRequest(req, res);
-    } catch (error) {
-      if (!res.locals.isHandled) {
-        console.error(`[Bare] Error handling request: ${error.message}`);
-        console.error(`[Bare] Stack: ${error.stack}`);
-        try {
-          res.writeHead(500, { 
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Content-Length, Authorization'
-          });
-          res.end(JSON.stringify({
-            error: 'Internal Server Error', 
-            message: error.message,
-            url: req.url,
-            code: error.code || 'UNKNOWN_ERROR',
-            time: new Date().toISOString()
-          }));
-        } catch (responseError) {
-          // Last resort error handling if we can't even send an error response
-          console.error(`[Server] Fatal error sending response: ${responseError.message}`);
-          // Try to force-close the connection if all else fails
-          try {
-            if (res.socket && !res.socket.destroyed) {
-              res.socket.end();
-            }
-          } catch (socketError) {
-            console.error(`[Server] Could not end socket: ${socketError.message}`);
-          }
-        }
-      }
-    }
-  } else {
-    // Not a bare request, so let Express handle it
-    // Wrap Express app in try/catch to handle any Express errors
-    try {
-      app(req, res);
-    } catch (expressError) {
-      console.error(`[Express] Error handling request: ${expressError.message}`);
-      if (!res.locals.isHandled && !res.headersSent) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Express Error', message: expressError.message }));
-      }
-    }
+  // Check if this is a Socket.IO request
+  if (req.url.startsWith('/socket.io/')) {
+    req.isSocketIoRequest = true;
+    return app(req, res);
   }
+  
+  // All other requests go to Express
+  app(req, res);
 });
 
-// Handle WebSocket connections for both Bare server and Socket.IO
+// Handle WebSocket connections for Socket.IO
 server.on('upgrade', (req, socket, head) => {
   // Safeguard against missing URL
   if (!req.url) {
@@ -255,14 +200,14 @@ server.on('upgrade', (req, socket, head) => {
     socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
     return;
   }
-
+  
   // Generate a unique request ID for tracking
   const requestId = Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
   
   console.log(`[Server] WebSocket upgrade request ${requestId} for: ${req.url}`);
   
   try {
-    // Handle Socket.IO connections first to prioritize them
+    // Handle Socket.IO connections
     if (req.url.startsWith('/socket.io/')) {
       console.log(`[Socket.IO] Handling WebSocket upgrade ${requestId}`);
       
@@ -281,19 +226,19 @@ server.on('upgrade', (req, socket, head) => {
           console.log(`[Socket.IO] WebSocket connection established for ${requestId}`);
           io.engine.emit('connection', ws, req);
         } catch (wsError) {
-          console.error(`[Socket.IO] WebSocket connection error: ${wsError.message}`);
+          console.error(`[Socket.IO] Error establishing WebSocket connection for ${requestId}: ${wsError.message}`);
+          try {
+            if (ws && ws.terminate) {
+              ws.terminate();
+            }
+          } catch (terminateError) {
+            console.error(`[Socket.IO] Error terminating WebSocket for ${requestId}: ${terminateError.message}`);
+          }
         }
       });
-    } 
-    // Then handle Bare server WebSocket connections
-    else if (bareServer.shouldRoute(req)) {
-      console.log(`[Bare] Handling WebSocket upgrade ${requestId}`);
-      req.isBareUpgrade = true;
-      bareServer.routeUpgrade(req, socket, head);
-    } 
-    // Reject any other WebSocket connections
-    else {
-      console.log(`[Server] Unknown WebSocket upgrade request ${requestId}: ${req.url}`);
+    } else {
+      // Reject any other WebSocket connections
+      console.warn(`[Server] Rejecting non-Socket.IO WebSocket upgrade for ${requestId}`);
       socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
     }
   } catch (error) {

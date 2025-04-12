@@ -74,27 +74,27 @@
             </div>
         </section>
         
-        <!-- Add quick links section similar to 55gms -->
+        <!-- Quick links section for educational resources -->
         <section class="quicklinks-section">
             <h2>Quick Access</h2>
             <div class="quicklinks">
-                <a class="quicklink" onclick="window.uv ? redirectToProxy('https://google.com') : hire('https://google.com')">
+                <a class="quicklink" data-url="https://google.com">
                     <img class="shortcut" src="https://www.google.com/favicon.ico" alt="Google">
                     <span>Google</span>
                 </a>
-                <a class="quicklink" onclick="window.uv ? redirectToProxy('https://youtube.com') : hire('https://youtube.com')">
+                <a class="quicklink" data-url="https://youtube.com">
                     <img class="shortcut" src="https://www.youtube.com/favicon.ico" alt="YouTube">
                     <span>YouTube</span>
                 </a>
-                <a class="quicklink" onclick="window.uv ? redirectToProxy('https://wikipedia.org') : hire('https://wikipedia.org')">
+                <a class="quicklink" data-url="https://wikipedia.org">
                     <img class="shortcut" src="https://en.wikipedia.org/favicon.ico" alt="Wikipedia">
                     <span>Wikipedia</span>
                 </a>
-                <a class="quicklink" onclick="window.uv ? redirectToProxy('https://quizlet.com') : hire('https://quizlet.com')">
+                <a class="quicklink" data-url="https://quizlet.com">
                     <img class="shortcut" src="https://quizlet.com/favicon.ico" alt="Quizlet">
                     <span>Quizlet</span>
                 </a>
-                <a class="quicklink" onclick="window.uv ? redirectToProxy('https://khanacademy.org') : hire('https://khanacademy.org')">
+                <a class="quicklink" data-url="https://khanacademy.org">
                     <img class="shortcut" src="https://www.khanacademy.org/favicon.ico" alt="Khan Academy">
                     <span>Khan Academy</span>
                 </a>
@@ -106,172 +106,107 @@
         <p>&copy; 2023 Study Resources Center. All rights reserved.</p>
     </footer>
 
-    <!-- Ultraviolet proxy scripts -->
+    <!-- Scripts -->
     <script src="/assets/js/randomSentence.js?v=1744154000"></script>
     <script type="module" src="/js/main.js?v=1744154000"></script>
-    <!-- Load the proxy handling scripts -->
-    <script src="/assets/uv/bare.js?v=1744154000"></script>
-    <script src="/assets/uv/wm.js?v=1744154000"></script>
-    <script src="/assets/uv/uv.config.js?v=1744154000"></script>
-    <script src="/assets/uv/uv.bundle.js?v=1744154000"></script>
-    <script src="/assets/uv/uv.handler.js?v=1744154000"></script>
-    <script src="/assets/uv/js/hiring.js?v=1744154000"></script>
-    <script type="module" src="/js/proxy.js?v=1744154000"></script>
+    <!-- Python proxy integration -->
+    <script type="module" src="/js/python-proxy-client.js?v=1744154000"></script>
+    <script type="module" src="/js/proxy-integration.js?v=1744154000"></script>
     
-    <!-- Service Worker Registration -->
+    <!-- Python Proxy Status -->
     <script>
-      // Function to register the service worker
-      async function registerServiceWorker() {
-        // Set a global flag to track the registration status
-        window.__uvRegistrationAttempted = true;
-        
-        if ('serviceWorker' in navigator) {
-          try {
-            console.log('Registering UV service worker...');
-            
-            // Check if we're in a secure context
-            const isSecureContext = window.isSecureContext || location.protocol === 'https:' || 
-                location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-                
-            if (!isSecureContext) {
-              // Log more details about the environment
-              console.warn('Not in a secure context, service worker registration will fail');
-              console.warn(`Protocol: ${location.protocol}, Hostname: ${location.hostname}`);
-              console.warn(`isSecureContext: ${window.isSecureContext ? 'true' : 'false'}`);
-              
-              // Set a global flag for insecure context
-              window.__uvInsecureContext = true;
-              
-              // Add notification for user about insecure context
-              const warningEl = document.createElement('div');
-              warningEl.style.background = '#ffebee';
-              warningEl.style.color = '#c62828';
-              warningEl.style.padding = '10px';
-              warningEl.style.margin = '10px 0';
-              warningEl.style.borderRadius = '5px';
-              warningEl.style.position = 'fixed';
-              warningEl.style.top = '0';
-              warningEl.style.left = '0';
-              warningEl.style.right = '0';
-              warningEl.style.zIndex = '9999';
-              warningEl.style.textAlign = 'center';
-              warningEl.innerHTML = `
-                <p>⚠️ Secure connection required for proxy functionality</p>
-                <p>Current URL: ${location.protocol}//${location.host}</p>
-                <p>Please use HTTPS or localhost.</p>
-                <button id="dismissWarning" style="background: #c62828; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-top: 5px;">Dismiss</button>
-              `;
-              document.body.appendChild(warningEl);
-              
-              // Add event listener to dismiss button
-              setTimeout(() => {
-                const dismissBtn = document.getElementById('dismissWarning');
-                if (dismissBtn) {
-                  dismissBtn.addEventListener('click', () => {
-                    if (warningEl.parentNode) {
-                      warningEl.parentNode.removeChild(warningEl);
-                    }
-                  });
-                }
-              }, 100);
-              
-              // Enable fallback mode without service worker
-              console.log('Enabling proxy fallback mode without service worker');
-              window.__uvFallbackMode = true;
-            }
-            
-            // Get the configured path from the UV config with cache busting
-            const swPath = `/assets/uv/uv.sw.js?v=${Date.now()}`;
-            
-            // Register the service worker with scope set to /service/
-            const registration = await navigator.serviceWorker.register(swPath, {
-              scope: '/service/',
-              updateViaCache: 'none' // Don't use cached versions
-            });
-            
-            console.log('UV Service worker registered successfully:', registration.scope);
-            
-            // Initialize bare client
-            window.bareClient = new BareClient('/bare-server/');
-            
-            // Check server connection
-            try {
-              console.log('Checking bare server connection...');
-              const data = await window.bareClient.ping();
-              console.log('Bare server connected successfully:', data);
-            } catch (error) {
-              console.error('Error connecting to bare server:', error);
-              
-              // Try fallback to bare-info endpoint
-              try {
-                const response = await fetch('/bare-info/');
-                if (response.ok) {
-                  const data = await response.json();
-                  console.log('Connected to bare-info fallback:', data);
-                }
-              } catch (fallbackError) {
-                console.error('All bare server connection attempts failed');
-              }
-            }
-          } catch (error) {
-            console.error('Service worker registration failed:', error);
-            // Log more details about the error
-            console.error('Error name:', error.name);
-            console.error('Error message:', error.message);
-            console.error('Error stack:', error.stack);
-            
-            // Set a global flag for failed registration
-            window.__uvRegistrationFailed = true;
-            
-            // Show a user-friendly error message
-            const errorContainer = document.createElement('div');
-            errorContainer.style.background = '#fff3cd';
-            errorContainer.style.color = '#856404';
-            errorContainer.style.padding = '15px';
-            errorContainer.style.margin = '15px 0';
-            errorContainer.style.borderRadius = '5px';
-            errorContainer.style.border = '1px solid #ffeeba';
-            errorContainer.innerHTML = `
-              <h3 style="margin-top:0">Proxy Service Error</h3>
-              <p>The web proxy service encountered an error: ${error.message || 'Unknown error'}</p>
-              <p>You can still use other features of the site, but proxy functionality will be limited.</p>
-              <button id="dismissError" style="background: #856404; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-top: 5px;">Dismiss</button>
+      // Check Python proxy status on page load
+      async function checkProxyStatus() {
+        try {
+          console.log('Checking Python proxy status...');
+          const response = await fetch('/api/health');
+          const data = await response.json();
+          
+          console.log('Python proxy status:', data);
+          
+          if (data.status !== 'healthy') {
+            // Show warning if proxy is not healthy
+            const warningEl = document.createElement('div');
+            warningEl.style.background = '#ffebee';
+            warningEl.style.color = '#c62828';
+            warningEl.style.padding = '10px';
+            warningEl.style.margin = '10px 0';
+            warningEl.style.borderRadius = '5px';
+            warningEl.style.position = 'fixed';
+            warningEl.style.top = '0';
+            warningEl.style.left = '0';
+            warningEl.style.right = '0';
+            warningEl.style.zIndex = '9999';
+            warningEl.style.textAlign = 'center';
+            warningEl.innerHTML = `
+              <p>⚠️ Python proxy service is not available</p>
+              <p>Status: ${data.status || 'unavailable'}</p>
+              <p>Some features may not work correctly.</p>
+              <button id="dismissWarning" style="background: #c62828; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-top: 5px;">Dismiss</button>
             `;
-            
-            // Insert after header or at top of main content
-            const mainContent = document.querySelector('main') || document.body;
-            mainContent.insertBefore(errorContainer, mainContent.firstChild);
+            document.body.appendChild(warningEl);
             
             // Add event listener to dismiss button
             setTimeout(() => {
-              const dismissBtn = document.getElementById('dismissError');
+              const dismissBtn = document.getElementById('dismissWarning');
               if (dismissBtn) {
                 dismissBtn.addEventListener('click', () => {
-                  if (errorContainer.parentNode) {
-                    errorContainer.parentNode.removeChild(errorContainer);
+                  if (warningEl.parentNode) {
+                    warningEl.parentNode.removeChild(warningEl);
                   }
                 });
               }
             }, 100);
-            
-            // Enable fallback mode without service worker
-            console.log('Enabling proxy fallback mode without service worker');
-            window.__uvFallbackMode = true;
           }
-        } else {
-          console.warn('Service workers are not supported in this browser');
-          // Set a global flag for unsupported browser
-          window.__uvUnsupportedBrowser = true;
+          
+          return data.status === 'healthy';
+        } catch (error) {
+          console.error('Error checking Python proxy status:', error);
+          
+          // Show error notification
+          const errorEl = document.createElement('div');
+          errorEl.style.background = '#ffebee';
+          errorEl.style.color = '#c62828';
+          errorEl.style.padding = '10px';
+          errorEl.style.margin = '10px 0';
+          errorEl.style.borderRadius = '5px';
+          errorEl.style.position = 'fixed';
+          errorEl.style.bottom = '0';
+          errorEl.style.left = '0';
+          errorEl.style.right = '0';
+          errorEl.style.zIndex = '9999';
+          errorEl.style.textAlign = 'center';
+          errorEl.innerHTML = `
+            <p>⚠️ Error connecting to Python proxy</p>
+            <p>${error.message || 'Unknown error'}</p>
+            <button id="dismissError" style="background: #c62828; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-top: 5px;">Dismiss</button>
+          `;
+          document.body.appendChild(errorEl);
+          
+          // Add event listener to dismiss button
+          setTimeout(() => {
+            const dismissBtn = document.getElementById('dismissError');
+            if (dismissBtn) {
+              dismissBtn.addEventListener('click', () => {
+                if (errorEl.parentNode) {
+                  errorEl.parentNode.removeChild(errorEl);
+                }
+              });
+            }
+          }, 100);
+          
+          return false;
         }
       }
       
-      // Wait for scripts to load and then register the service worker
-      window.addEventListener('load', () => {
-        // Allow scripts to initialize properly
-        setTimeout(() => {
-          registerServiceWorker();
-        }, 500);
-      });
+      // Wait for scripts to load and then check proxy status
+    window.addEventListener('load', () => {
+      // Allow scripts to initialize properly
+      setTimeout(() => {
+        // Check Python proxy status
+        checkProxyStatus();
+      }, 1000);
+    });
     </script>
 </body>
-</html> 
+</html>

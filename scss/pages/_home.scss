@@ -1,3 +1,7 @@
+@use 'sass:color';
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
 // Main content area
 main {
   max-width: $container-max-width;
@@ -74,7 +78,7 @@ main {
 }
 
 .quicklink {
-  background-color: darken($card-bg, 5%);
+  background-color: color.adjust($card-bg, $lightness: -5%);
   padding: $spacing-small $spacing-base;
   border-radius: $border-radius;
   color: $text-color;
@@ -88,7 +92,7 @@ main {
 
 .shortcut {
   display: inline-block;
-  background-color: darken($card-bg, 10%);
+  background-color: color.adjust($card-bg, $lightness: -10%);
   color: $text-color;
   padding: 2px 6px;
   border-radius: 3px;
@@ -117,7 +121,7 @@ main {
 
 // Random fact
 .fact-message {
-  background-color: darken($card-bg, 5%);
+  background-color: color.adjust($card-bg, $lightness: -5%);
   padding: $spacing-base;
   border-radius: $border-radius;
   margin: $spacing-large 0;

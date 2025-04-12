@@ -1,3 +1,7 @@
+@use 'sass:math';
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
 .form-container {
   max-width: 500px;
   margin: 0 auto;
@@ -23,7 +27,7 @@
     width: 100%;
     padding: $spacing-base;
     border: 1px solid $border-color;
-    border-radius: $border-radius / 2;
+    border-radius: math.div($border-radius, 2);
     background-color: $input-bg;
     color: $text-color;
     @include transition;
