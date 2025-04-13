@@ -3,7 +3,10 @@ node_modules/
 .pnp/
 .pnp.js
 venv
+.venv
 TEMP_nginx&pm2_setup.md
+ecosystem.config.js
+__pycache__
 # Environment variables and secrets
 .env
 .env.local

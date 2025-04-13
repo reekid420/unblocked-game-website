@@ -3,8 +3,8 @@
  * Handles communication with the Python FastAPI proxy server
  */
 
-// Get the Python proxy URL from environment or use default
-const PYTHON_PROXY_URL = process.env.PYTHON_PROXY_URL || 'http://localhost:6078';
+// Set the Python proxy URL
+const PYTHON_PROXY_URL = '/api';
 
 class PythonProxyClient {
   constructor(baseUrl = PYTHON_PROXY_URL) {
