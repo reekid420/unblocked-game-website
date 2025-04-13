@@ -145,13 +145,27 @@ function processQuery(query, searchEngine) {
         query = 'https://' + query;
       }
       
-      // Redirect to the proxy
-      redirectToProxy(query);
+      // Redirect to the proxy using the Python proxy adapter
+      if (typeof window.redirectToProxy === 'function') {
+        // Use the adapter's implementation
+        window.redirectToProxy(query);
+      } else {
+        // Fallback to direct encoding if adapter not available
+        const encodedUrl = btoa(query);
+        window.location.href = `/service/${encodedUrl}`;
+      }
     } else {
       // It's a search query, encode and send to search engine
       const searchUrl = searchEngine + encodeURIComponent(query);
       logger.info('Using search engine for query:', searchUrl);
-      redirectToProxy(searchUrl);
+      
+      // Use the Python proxy adapter for search queries too
+      if (typeof window.redirectToProxy === 'function') {
+        window.redirectToProxy(searchUrl);
+      } else {
+        const encodedUrl = btoa(searchUrl);
+        window.location.href = `/service/${encodedUrl}`;
+      }
     }
   } catch (error) {
     logger.error('Error processing query:', error);
@@ -167,45 +181,16 @@ function redirectToProxy(url) {
   logger.info('Redirecting to proxy for URL:', url);
   
   try {
-    // Check if the proxy is initialized
-    if (!isInitialized && browserInfo.isServiceWorkerSupported) {
-      logger.warn('Proxy not initialized, attempting initialization first');
-      
-      // Try to initialize and then redirect
-      registerServiceWorker().then(async success => {
-        if (success) {
-          logger.info('Proxy initialized successfully, now redirecting');
-          
-          // Validate bare server connectivity before redirecting
-          if (window.bareClient) {
-            try {
-              await window.bareClient.ping();
-              logger.info('Bare server connection verified, proceeding with redirect');
-            } catch (bareError) {
-              logger.warn('Bare server connectivity issue detected. Attempting to use fallback methods.');
-              // Continue anyway as the actual proxy request might still work
-              // Some bare implementations don't support ping properly
-            }
-          }
-          
-          // Wait a moment for the service worker to fully initialize
-          setTimeout(() => {
-            // Set a flag to indicate we're attempting a redirect
-            sessionStorage.setItem('pendingProxyRedirect', url);
-            
-            // Attempt the redirect
-            redirectToProxyInternal(url);
-          }, 500);
-        } else {
-          throw new Error('Failed to initialize proxy service');
-        }
-      });
-      
+    // Always use the Python proxy adapter if available
+    if (typeof window.redirectToProxy === 'function' && window.redirectToProxy !== redirectToProxy) {
+      // Call the adapter's implementation (which is now on the window object)
+      window.redirectToProxy(url);
       return;
     }
     
-    // Redirect directly if already initialized
-    redirectToProxyInternal(url);
+    // Fallback to direct encoding if adapter not available
+    const encodedUrl = btoa(url);
+    window.location.href = `/service/${encodedUrl}`;
   } catch (error) {
     logger.error('Error redirecting to proxy:', error);
     
