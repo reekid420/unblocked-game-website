@@ -138,15 +138,18 @@ function checkPythonRequirements() {
 
 // Helper function to check requirements
 function checkRequirements(pipOutput, requirementsPath, resolve, reject) {
-  const requirements = fs.readFileSync(requirementsPath, 'utf8')
+  let requirements = fs.readFileSync(requirementsPath, 'utf8')
     .split('\n')
     .filter(line => line.trim() && !line.startsWith('#'))
     .map(line => {
+      // Handle pip extras: treat httpx[http2] as httpx + h2
+      if (line.startsWith('httpx[http2]')) return ['httpx', 'h2'];
       const match = line.match(/^([^=<>~]+)/);
-      return match ? match[1].trim().toLowerCase() : null;
+      return match ? [match[1].trim().toLowerCase()] : [];
     })
+    .flat()
     .filter(Boolean);
-  
+
   const installedPackages = pipOutput.split('\n')
     .slice(2) // Skip header lines
     .map(line => {
@@ -154,9 +157,12 @@ function checkRequirements(pipOutput, requirementsPath, resolve, reject) {
       return parts[0] ? parts[0].toLowerCase() : null;
     })
     .filter(Boolean);
-  
+
+  // Remove duplicates
+  requirements = [...new Set(requirements)];
+
   const missingPackages = requirements.filter(req => !installedPackages.includes(req));
-  
+
   if (missingPackages.length > 0) {
     logger.warn('Python', `Missing packages: ${missingPackages.join(', ')}`);
     reject(new Error(`Missing Python packages: ${missingPackages.join(', ')}`));
@@ -171,7 +177,7 @@ function startPythonProxy() {
   return new Promise((resolve, reject) => {
     logger.info('Python Proxy', `Starting on port ${PYTHON_PROXY_PORT}...`);
     
-    const pythonCommand = process.platform === 'win32' ? 'python' : 'python3';
+    const pythonCommand = 'D:/unblocked-game-website/python-proxy/venv/Scripts/python.exe';
     const pythonProcess = spawn(pythonCommand, ['-m', 'uvicorn', 'main:app', '--host', '0.0.0.0', '--port', PYTHON_PROXY_PORT], {
       cwd: PYTHON_PROXY_DIR,
       env: { ...process.env, PORT: PYTHON_PROXY_PORT }

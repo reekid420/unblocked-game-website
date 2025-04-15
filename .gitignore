@@ -40,7 +40,7 @@ out/
 *.sqlite
 *.sqlite3
 *.db
-
+coverage
 # Prisma
 prisma/migrations/
 .prisma/

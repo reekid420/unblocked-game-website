@@ -159,6 +159,7 @@ async def store_in_cache(cache_key: str, response_data: Dict[str, Any]):
                 del response_cache[key]
 
 # Main endpoint for bare proxy requests
+@router.post("")
 @router.post("/")
 async def bare_proxy(
     request: Request,

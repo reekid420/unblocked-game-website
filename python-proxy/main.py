@@ -30,7 +30,8 @@ app.add_middleware(
 )
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Initialize templates
 templates = Jinja2Templates(directory="templates")
@@ -39,8 +40,8 @@ templates = Jinja2Templates(directory="templates")
 from routers import ai_router, proxy_router
 
 # Include routers
-app.include_router(ai_router.router, prefix="/api", tags=["AI"])
-app.include_router(proxy_router.router, prefix="/bare-server", tags=["Proxy"])
+app.include_router(ai_router.router, prefix="/ai", tags=["AI"])
+app.include_router(proxy_router.router, prefix="/proxy", tags=["Proxy"])
 
 @app.get("/")
 async def root():
