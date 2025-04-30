@@ -113,6 +113,9 @@ async def get_user_id(
                 token_payload = await verify_token(credentials)
                 if "sub" in token_payload:
                     logger.info(f"Authenticated user from JWT: {token_payload['sub']}")
+                    if token_payload["sub"] == "testuser":
+                        # Allow 'testuser' for local testing
+                        return "testuser"
                     return token_payload["sub"]
             except HTTPException as e:
                 logger.warning(f"JWT authentication failed: {str(e)}")
@@ -148,7 +151,7 @@ async def get_user_id(
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    except jwt.PyJWTError as e:
+    except jwt.JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid authentication credentials: {str(e)}",

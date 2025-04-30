@@ -1,27 +1,30 @@
 module.exports = {
   apps: [
     {
-      name: 'node-server',
-      script: 'server.js',
+      name: 'backend',
+      script: 'src/server.ts',
+      interpreter: './node_modules/.bin/ts-node',
+      cwd: './',
       instances: 1,
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
       env: {
-        NODE_ENV: 'production',
+        NODE_ENV: 'development',
         PORT: 8080
       }
     },
     {
-      name: 'python-proxy',
-      script: 'python3 -m uvicorn main:app --host 0.0.0.0 --port 6078',
-      cwd: './python-proxy',
+      name: 'frontend',
+      script: 'npm',
+      args: 'run dev',
+      cwd: './',
       instances: 1,
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
       env: {
-        PORT: 6078
+        NODE_ENV: 'development'
       }
     }
   ]

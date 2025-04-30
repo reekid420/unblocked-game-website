@@ -1,17 +1,18 @@
 # Project Improvement Roadmap
 
-_Last updated: 2025-04-14_
+_Last updated: 2025-04-15_
 
 ---
 NOTES:
 all files are in backup_root_package but still retain there original paths from there
+Were CONVERTING files so as little changes as possible 
 ## 1. **Current State Overview**
 
 ### **Architecture**
 - **Backend:** Node.js (Express) server with Socket.IO, CORS, dotenv, EJS, Prisma, and Python proxy integration (FastAPI).
-- **Frontend:** Static HTML, vanilla JS modules, SASS-compiled CSS. No React yet.
+- **Frontend:** React + TypeScript (Vite), modular components, SASS-compiled CSS (legacy SCSS integrated as global styles). Static HTML and vanilla JS being migrated out.
 - **Proxy:** Python FastAPI service (in `python-proxy/`) for advanced proxying and AI chat.
-- **Assets:** Served from `/assets`, `/js`, `/public`, and `/scss` for SASS source.
+- **Assets:** Served from `/assets`, `/js`, `/public`, and `/scss` for SASS source. SCSS imported via Vite in React app.
 - **Authentication:** JWT-based, with session management.
 - **Testing:** Jest for JS, some Python tests.
 
@@ -46,7 +47,12 @@ all files are in backup_root_package but still retain there original paths from 
 ### **Frontend/UX**
 - Proxied content was previously dumped as raw HTML/JSON. _**[Patched: now visually rendered]**_
 - SPA fallback could serve `index.html` for asset requests. _**[Patched]**_
-- No React or TypeScript yet; codebase is harder to maintain and scale.
+- **React + TypeScript migration in progress:**
+  - HomePage fully migrated, pixel-perfect to legacy.
+  - NavBar, LoginPage, LoginForm modularized.
+  - Vite build tool in use; all legacy SCSS integrated via main.tsx.
+  - Font Awesome and all legacy class names preserved for perfect style match.
+  - Old frontend configs and files cleaned up.
 
 ### **Cross-Platform Issues**
 - SASS: Fixed for Windows/Linux by using `sass` package and modern syntax.
@@ -57,6 +63,30 @@ all files are in backup_root_package but still retain there original paths from 
 ---
 
 ## 3. **Detailed File Analysis**
+
+---
+
+## 4. **Recent Progress (2025-04-15)**
+
+- **Backend Conversion Begins (2025-04-15):**
+  - Starting migration of backend (Node.js/Express, Socket.IO, API, etc.) to modern, modular TypeScript.
+  - All backend changes will be tracked here and the roadmap will be updated after every change.
+  - `server.js` has been converted to `server.ts` as a minimal TypeScript port. All logic is preserved as in the original; further modularization and refactoring will be addressed in future steps.
+  - Middleware, proxy, and server logic (lines 60–260 of legacy server.js) have been migrated to server.ts with minimal change. Some TypeScript linter issues (e.g., variable redeclaration, type overloads) are present and will be addressed in the next step.
+  - /bare-info, legacy bare redirects, HTML/static file handlers, SPA fallback, and bare WebSocket logic (lines 460–660 of legacy server.js) have now been migrated to server.ts. Remaining linter issues only relate to legacy router imports and signatures involving unconverted code.
+
+- **React + TypeScript + Vite migration underway:**
+  - HomePage, NavBar, LoginPage, LoginForm converted to React components.
+  - HomePage is now pixel-perfect to legacy HTML/CSS.
+  - All legacy SCSS is loaded globally via Vite, using the same class names for seamless style transfer.
+  - Font Awesome icons and structure preserved.
+  - Project cleaned: old frontend directory/configs removed, tsconfig/app.json updated.
+  - Linter warnings resolved (unused imports, config cleanup).
+- **Next up:**
+  - Continue migrating additional pages (chat, AI chat, games, etc.)
+  - Modularize more JS logic (dynamic fact, proxy behavior, etc.)
+  - Refactor styles to CSS Modules if needed for component isolation.
+  - Expand/modernize UI as desired while preserving legacy look.
 
 ### **Key Files**
 - **server.js**: Central logic for static serving, proxying, SPA fallback, error handling, Socket.IO, and environment config. _Complex, monolithic, needs modularization._

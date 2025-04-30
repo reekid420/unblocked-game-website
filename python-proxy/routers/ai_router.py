@@ -19,7 +19,6 @@ logger = logging.getLogger("ai_router")
 
 # Define router with prefix and tags
 router = APIRouter(
-    prefix="/ai-chat",
     tags=["AI Chat"],
     responses={404: {"description": "Not found"}},
 )
@@ -29,7 +28,7 @@ class ChatMessage(BaseModel):
     message: str
     conversation_id: Optional[str] = None
     system_prompt: Optional[str] = None
-    model: Optional[str] = "gemini-pro"
+    model: Optional[str] = "gemini-1.5-pro-latest"
     temperature: Optional[float] = 0.7
     top_k: Optional[int] = 40
     top_p: Optional[float] = 0.95

@@ -1,2 +1,2 @@
 /* Import legacy SASS output for global styles */
-@import '../../public/styles.css';
+@import '../backup_root_package/public/styles.css';
